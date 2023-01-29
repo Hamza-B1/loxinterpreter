@@ -1,6 +1,7 @@
 class Scanner(private val source: String) {
 
     private var tokens: ArrayList<Token> = ArrayList()
+    // start and current used for two-pointer traversal of tokens of length > 2
     private var start: Int = 0
     private var current: Int = 0
     private var line: Int = 1
