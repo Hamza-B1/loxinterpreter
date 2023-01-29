@@ -6,7 +6,7 @@ class Scanner(private val source: String) {
     private var line: Int = 1
     var errorList: ArrayList<String> = ArrayList()
     private val isAtEnd: Boolean
-        get() = current > source.length
+        get() = current >= source.length
     fun scanTokens(): List<Token> {
         while (!isAtEnd) {
             start = current

@@ -9,11 +9,6 @@ fun main(args: Array<String>) {
     var scannerErrors: ArrayList<String> = ArrayList()
     var parserErrors: ArrayList<String> = ArrayList()
 
-//    fun reportError(line: Int, message: String, where: String) {
-//        println("[line + $line] Error $where : $message")
-//        hadError = true
-//    }
-
     fun run(code: String) {
         val scanner = Scanner(code)
         val tokens: List<Token> = scanner.scanTokens()
@@ -42,12 +37,14 @@ fun main(args: Array<String>) {
     }
 
 
-    // true entry point
     if (args.size > 1) {
         println("Usage: loxinterpreter [script]")
     } else if (args.size == 1) {
         runFile(args[0])
     }
     else runPrompt()
-    if (hadError) exitProcess(65)
+    if (hadError) {
+        println(scannerErrors.joinToString("\n"))
+        exitProcess(65)
+    }
 }
