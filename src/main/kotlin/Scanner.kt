@@ -1,23 +1,25 @@
 class Scanner(private val source: String) {
 
     private var tokens: ArrayList<Token> = ArrayList()
+    // the start and current act as a two-pointer for parsing stuff longer than 1 char
     private var start: Int = 0
     private var current: Int = 0
     private var line: Int = 1
     var errorList: ArrayList<String> = ArrayList()
     private val isAtEnd: Boolean
-        get() = current > source.length
+        get() = current >= source.length
+
     fun scanTokens(): List<Token> {
         while (!isAtEnd) {
             start = current
             scanToken()
         }
-
         tokens.add(Token(TokenType.EOF, "", null, line))
         return tokens
     }
+
     private fun scanToken() {
-        var c = advance() // now the current pointer is at the next character
+        val c = advance() // now the current pointer is at the next character
         when (c) {
             '('-> addToken(TokenType.LEFT_PAREN)
             ')'-> addToken(TokenType.RIGHT_PAREN)
@@ -40,6 +42,7 @@ class Scanner(private val source: String) {
                     while (peek() != '\n' && !isAtEnd) advance()
                 } else addToken(TokenType.SLASH)
             }
+            // stuff that isn't tokenized
             ' '-> {}
             '\r'-> {}
             '\t'-> {}
@@ -48,10 +51,15 @@ class Scanner(private val source: String) {
             '"'-> string()
 
             else -> {
-                errorList.add("Unexpected character $c at line $line")
+                errorList.add("Unexpected character '$c' at line $line\n")
             }
         }
     }
+    private fun addToken(type: TokenType, literal: Any? = null) {
+        val text: String = source.substring(start, current)
+        tokens.add(Token(type, text, literal, line))
+    }
+
     private fun string() {
         while (peek() != '"' && !isAtEnd) {
             if (peek() == '\n') line++
@@ -59,7 +67,7 @@ class Scanner(private val source: String) {
         }
 
         if (isAtEnd) {
-            errorList.add("unterminated string at line $line")
+            errorList.add("unterminated string at line $line\n")
             return
         }
 
@@ -68,6 +76,7 @@ class Scanner(private val source: String) {
         val value = source.substring(start + 1, current - 1)
         addToken(TokenType.STRING, value)
     }
+
     private fun match(expected: Char): Boolean {
         if (isAtEnd) return false
         if (source[current] != expected) return false
@@ -75,9 +84,5 @@ class Scanner(private val source: String) {
         return true
     }
     private fun advance() = source[current++]
-    private fun addToken(type: TokenType, literal: Any? = null) {
-        val text: String = source.substring(start, current)
-        tokens.add(Token(type, text, literal, line))
-    }
     private fun peek(): Char = if (isAtEnd) '\n' else source[current]
 }
