@@ -1,6 +1,6 @@
 class Token(private val type: TokenType, private val lexeme: String,
             private val literal: Any?, val line: Int) {
-    fun ToString(): String = "$type $lexeme $literal"
+    override fun toString(): String = "$type $lexeme $literal at line $line"
 }
 
 enum class TokenType {

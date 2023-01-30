@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
         val scanner = Scanner(code)
         val tokens: List<Token> = scanner.scanTokens()
         for (token in tokens) {
-            println(token.ToString())
+            println(token.toString())
         }
         if (scanner.errorList.isNotEmpty()) {
             scannerErrors = scanner.errorList
