@@ -36,6 +36,7 @@ class Scanner(private val source: String) {
             '<'-> addToken(if (match('=')) TokenType.LESS_EQUAL else TokenType.LESS)
             '>'-> addToken(if (match('=')) TokenType.GREATER_EQUAL else TokenType.GREATER)
 
+            // comments and multiline comments
             '/'-> {
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd) advance()
@@ -55,6 +56,8 @@ class Scanner(private val source: String) {
 
                 } else addToken(TokenType.SLASH)
             }
+
+
             ' '-> {}
             '\r'-> {}
             '\t'-> {}
@@ -66,11 +69,17 @@ class Scanner(private val source: String) {
                 if (isDigit(c)) {
                     number()
                 }
+
+                else if (isAlpha(c)) {
+                    identifier()
+                }
                 else errorList.add("Unexpected character '$c' at line $line")
             }
         }
     }
 
+    private fun isAlpha(c: Char): Boolean = c in 'a' .. 'z' || c == '_' || c in 'A' .. 'Z'
+    private fun isAlphaNumeric(c: Char) : Boolean = isAlpha(c) || isDigit(c)
     private fun number() {
         while (isDigit(source[current])) advance()
 
@@ -80,6 +89,11 @@ class Scanner(private val source: String) {
         }
 
         addToken(TokenType.NUMBER, source.substring(start, current).toDouble())
+    }
+    private fun identifier() {
+        while (isAlphaNumeric(peek())) advance()
+        var substring = source.substring(start, current)
+        addToken(keywords[substring] ?: TokenType.IDENTIFIER)
     }
     private fun string() {
         while (peek() != '"' && !isAtEnd) {
@@ -111,22 +125,23 @@ class Scanner(private val source: String) {
     private fun peek(): Char = if (isAtEnd) '\u0000' else source[current]
     private fun isDigit(c: Char): Boolean = c in '0'..'9' // standard lib impl allows weird stuff like full width numbers
 
-    private val keywords: HashMap<String, TokenType> = hashMapOf(
-        "and" to TokenType.AND,
-        "class" to TokenType.CLASS,
-        "else" to TokenType.ELSE,
-        "false" to TokenType.FALSE,
-        "for" to TokenType.FOR,
-        "fun" to TokenType.FUN,
-        "if" to TokenType.IF,
-        "nil" to TokenType.NIL,
-        "or" to TokenType.OR,
-        "print" to TokenType.PRINT,
-        "return" to TokenType.RETURN,
-        "super" to TokenType.SUPER,
-        "this" to TokenType.THIS,
-        "true" to TokenType.TRUE,
-        "var" to TokenType.VAR,
-        "while" to TokenType.WHILE
-    )
+    private val keywords: HashMap<String, TokenType>
+        get() = hashMapOf(
+            "and" to TokenType.AND,
+            "class" to TokenType.CLASS,
+            "else" to TokenType.ELSE,
+            "false" to TokenType.FALSE,
+            "for" to TokenType.FOR,
+            "fun" to TokenType.FUN,
+            "if" to TokenType.IF,
+            "nil" to TokenType.NIL,
+            "or" to TokenType.OR,
+            "print" to TokenType.PRINT,
+            "return" to TokenType.RETURN,
+            "super" to TokenType.SUPER,
+            "this" to TokenType.THIS,
+            "true" to TokenType.TRUE,
+            "var" to TokenType.VAR,
+            "while" to TokenType.WHILE
+        )
 }

@@ -1,14 +1,35 @@
 abstract class Expr {
+    abstract fun <R> accept(visitor: Visitor<R>): R
     interface Visitor<R> {
-
+        fun visitLiteralExpr(exp: Literal): R
+        fun visitBinaryExpr(exp: Binary): R
+        fun visitUnaryExpr(exp: Unary): R
+        fun visitGroupingExpr(exp: Grouping): R
     }
-    class Binary(val left: Expr, val operator: Token, val right: Expr) : Expr() {
-        override fun <R> accept(visitor: Visitor<R>): R? {
-            return null
+
+    class Literal(val value: Any) : Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitLiteralExpr(this)
         }
     }
 
-    abstract fun <R> accept(visitor: Visitor<R>): R?
+    class Binary(val left: Expr, val operator: Token, val right: Expr) : Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitBinaryExpr(this)
+        }
+    }
+
+    class Unary(val operator: Token, val operand: Expr) : Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitUnaryExpr(this)
+        }
+    }
+
+    class Grouping(val value: Expr) : Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitGroupingExpr(this)
+        }
+    }
 
 
 }
