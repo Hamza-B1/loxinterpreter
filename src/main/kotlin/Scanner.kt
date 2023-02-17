@@ -1,11 +1,12 @@
 class Scanner(private val source: String) {
 
     private var tokens: ArrayList<Token> = ArrayList()
-    // the start and current act as a two-pointer for parsing stuff longer than 1 char
+    // start and current used for two-pointer traversal to parse tokens of length > 2
     private var start: Int = 0
     private var current: Int = 0
     private var line: Int = 1
     var errorList: ArrayList<String> = ArrayList()
+
     private val isAtEnd: Boolean
         get() = current >= source.length
 
@@ -17,10 +18,8 @@ class Scanner(private val source: String) {
         tokens.add(Token(TokenType.EOF, "", null, line))
         return tokens
     }
-
     private fun scanToken() {
-        val c = advance() // now the current pointer is at the next character
-        when (c) {
+        when (val c = advance()) { // now the current pointer is at the next character
             '('-> addToken(TokenType.LEFT_PAREN)
             ')'-> addToken(TokenType.RIGHT_PAREN)
             '{'-> addToken(TokenType.LEFT_BRACE)
@@ -40,9 +39,22 @@ class Scanner(private val source: String) {
             '/'-> {
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd) advance()
+                }
+                else if (match('*')) { // consume the asterisk
+                    while (peek() != '*' && !isAtEnd) {
+                        if (peek() == '\n') line++
+                        advance()
+                    }
+                    if (peekNext() == '/')
+                    {
+                        val s: String = source.substring(start + 2, current)
+                        advance() // consume the trailing asterisk and slash
+                        advance()
+                        println("comment parsed: '$s'")
+                    }
+
                 } else addToken(TokenType.SLASH)
             }
-            // stuff that isn't tokenized
             ' '-> {}
             '\r'-> {}
             '\t'-> {}
@@ -51,26 +63,33 @@ class Scanner(private val source: String) {
             '"'-> string()
 
             else -> {
-                errorList.add("Unexpected character '$c' at line $line\n")
+                if (isDigit(c)) {
+                    number()
+                }
+                else errorList.add("Unexpected character '$c' at line $line")
             }
         }
     }
-    private fun addToken(type: TokenType, literal: Any? = null) {
-        val text: String = source.substring(start, current)
-        tokens.add(Token(type, text, literal, line))
-    }
 
+    private fun number() {
+        while (isDigit(source[current])) advance()
+
+        if (peek() == '.' && isDigit(peekNext())) {
+            advance() // consume decimal point
+            while(isDigit(source[current])) advance()
+        }
+
+        addToken(TokenType.NUMBER, source.substring(start, current).toDouble())
+    }
     private fun string() {
         while (peek() != '"' && !isAtEnd) {
             if (peek() == '\n') line++
             advance()
         }
-
         if (isAtEnd) {
-            errorList.add("unterminated string at line $line\n")
+            errorList.add("unterminated string at line $line")
             return
         }
-
         // we have reached the closing "
         advance()
         val value = source.substring(start + 1, current - 1)
@@ -84,5 +103,30 @@ class Scanner(private val source: String) {
         return true
     }
     private fun advance() = source[current++]
-    private fun peek(): Char = if (isAtEnd) '\n' else source[current]
+    private fun addToken(type: TokenType, literal: Any? = null) {
+        val text: String = source.substring(start, current)
+        tokens.add(Token(type, text, literal, line))
+    }
+    private fun peekNext(): Char = if (current + 1 > source.length) '\u0000' else source[current + 1]
+    private fun peek(): Char = if (isAtEnd) '\u0000' else source[current]
+    private fun isDigit(c: Char): Boolean = c in '0'..'9' // standard lib impl allows weird stuff like full width numbers
+
+    private val keywords: HashMap<String, TokenType> = hashMapOf(
+        "and" to TokenType.AND,
+        "class" to TokenType.CLASS,
+        "else" to TokenType.ELSE,
+        "false" to TokenType.FALSE,
+        "for" to TokenType.FOR,
+        "fun" to TokenType.FUN,
+        "if" to TokenType.IF,
+        "nil" to TokenType.NIL,
+        "or" to TokenType.OR,
+        "print" to TokenType.PRINT,
+        "return" to TokenType.RETURN,
+        "super" to TokenType.SUPER,
+        "this" to TokenType.THIS,
+        "true" to TokenType.TRUE,
+        "var" to TokenType.VAR,
+        "while" to TokenType.WHILE
+    )
 }
