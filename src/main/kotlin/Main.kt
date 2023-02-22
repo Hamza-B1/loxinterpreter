@@ -35,7 +35,6 @@ fun main(args: Array<String>) {
         val code = reader.use { it.readText() }
         run(code)
     }
-
     // true entry point
     if (args.size > 1) {
         println("Usage: loxinterpreter [script]")
@@ -47,4 +46,19 @@ fun main(args: Array<String>) {
         println(scannerErrors.joinToString(" "))
         exitProcess(65)
     }
+
+    val e: Expr = Expr.Binary(
+            Expr.Unary(
+                    Token(TokenType.MINUS, "-", null, 1),
+                    Expr.Literal(123)
+            ),
+            Token(TokenType.STAR, "*", null, 1),
+            Expr.Grouping(
+                    Expr.Literal(45.67)
+            )
+    )
+
+    val p = AstPrinter()
+    println(p.print(e))
+
 }
