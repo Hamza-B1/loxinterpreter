@@ -92,7 +92,7 @@ class Scanner(private val source: String) {
     }
     private fun identifier() {
         while (isAlphaNumeric(peek())) advance()
-        var substring = source.substring(start, current)
+        val substring = source.substring(start, current)
         addToken(keywords[substring] ?: TokenType.IDENTIFIER)
     }
     private fun string() {

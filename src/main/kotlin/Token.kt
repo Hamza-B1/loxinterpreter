@@ -1,5 +1,5 @@
 class Token(val type: TokenType, val lexeme: String,
-            private val literal: Any?, val line: Int) {
+            val literal: Any?, val line: Int) {
     override fun toString(): String = "$type $lexeme $literal"
 }
 
