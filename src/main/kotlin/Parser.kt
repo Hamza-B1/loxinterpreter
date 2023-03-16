@@ -2,6 +2,7 @@ class Parser(private val tokens: List<Token>) {
     private var current: Int = 0
     private var isAtEnd = peek().type == TokenType.EOF
     private var previous = tokens[current - 1]
+    var errorList: ArrayList<String> = ArrayList()
 
     /*
     CONTEXT FREE GRAMMAR FOR PARSER
@@ -13,7 +14,7 @@ class Parser(private val tokens: List<Token>) {
     unary          → ( "!" | "-" ) unary | primary ;
     primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
 
-    with ternary
+    with ternary?? TBC
     // parse ? expr : kinda like grouping expression
     //
     expression     → equality ;
@@ -89,12 +90,24 @@ class Parser(private val tokens: List<Token>) {
 
         if (match(TokenType.LEFT_PAREN)) {
             val exp = expression()
-            // consume
+            consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")
             return Expr.Grouping(exp)
         }
-        throw Exception()
     }
 
+    private fun consume(type: TokenType, message: String): Token {
+        if (check(type)) return advance()
+        throw error(peek(), message)
+    }
+
+    private fun error(token: Token, message: String): ParseError {
+        if (token.type == TokenType.EOF)
+            errorList.add(token.line.toString() + "at end " + message)
+        else {
+            errorList.add(token.line.toString() +" at '" + token.lexeme + "'" + message)
+        }
+        return ParseError()
+    }
     private fun match(vararg types: TokenType): Boolean {
         for (type in types) {
             if (check(type)) {
