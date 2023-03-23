@@ -51,12 +51,9 @@ class Scanner(private val source: String) {
                         val s: String = source.substring(start + 2, current)
                         advance() // consume the trailing asterisk and slash
                         advance()
-                        println("comment parsed: '$s'")
                     }
-
                 } else addToken(TokenType.SLASH)
             }
-
 
             ' '-> {}
             '\r'-> {}
@@ -87,7 +84,6 @@ class Scanner(private val source: String) {
             advance() // consume decimal point
             while(isDigit(source[current])) advance()
         }
-
         addToken(TokenType.NUMBER, source.substring(start, current).toDouble())
     }
     private fun identifier() {

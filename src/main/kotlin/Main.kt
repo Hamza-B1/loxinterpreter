@@ -4,8 +4,8 @@ import kotlin.system.exitProcess
 
 // basic functionality for interpreter
 fun main(args: Array<String>) {
-
-    var hadError = false
+    var hadScanError = false
+    var hadParseError = false
     var scannerErrors: ArrayList<String> = ArrayList()
     var parserErrors: ArrayList<String> = ArrayList()
 
@@ -15,10 +15,20 @@ fun main(args: Array<String>) {
         for (token in tokens) {
             println(token.toString())
         }
+
         if (scanner.errorList.isNotEmpty()) {
             scannerErrors = scanner.errorList
-            hadError = true
+            hadScanError = true
         }
+
+        val parser = Parser(tokens)
+        parser.parse()
+        if (parser.errorList.isNotEmpty()) {
+            parserErrors = parser.errorList
+            hadParseError = true
+        }
+        // do not continue if the parser threw an error
+
     }
 
     fun runPrompt() {
@@ -35,6 +45,7 @@ fun main(args: Array<String>) {
         val code = reader.use { it.readText() }
         run(code)
     }
+
     // true entry point
     if (args.size > 1) {
         println("Usage: loxinterpreter [script]")
@@ -42,23 +53,24 @@ fun main(args: Array<String>) {
         runFile(args[0])
     }
     else runPrompt()
-    if (hadError) {
+    if (hadParseError || hadScanError) {
         println(scannerErrors.joinToString(" "))
+        println(parserErrors.joinToString(" "))
         exitProcess(65)
     }
 
-    val e: Expr = Expr.Binary(
-            Expr.Unary(
-                    Token(TokenType.MINUS, "-", null, 1),
-                    Expr.Literal(123)
-            ),
-            Token(TokenType.STAR, "*", null, 1),
-            Expr.Grouping(
-                    Expr.Literal(45.67)
-            )
-    )
-
-    val p = AstPrinter()
-    println(p.print(e))
+//    val e: Expr = Expr.Binary(
+//            Expr.Unary(
+//                    Token(TokenType.MINUS, "-", null, 1),
+//                    Expr.Literal(123)
+//            ),
+//            Token(TokenType.STAR, "*", null, 1),
+//            Expr.Grouping(
+//                    Expr.Literal(45.67)
+//            )
+//    )
+//
+//    val p = AstPrinter()
+//    println(p.print(e))
 
 }
