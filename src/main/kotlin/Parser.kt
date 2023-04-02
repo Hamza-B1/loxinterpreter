@@ -26,6 +26,7 @@ class Parser(private val tokens: List<Token>) {
     primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
     */
 
+    // Expression parsers that map to each grammar rule
     fun parse(): Expr? {
         return try {
             expression()
@@ -104,23 +105,8 @@ class Parser(private val tokens: List<Token>) {
         throw error(peek(), "Expected expression")
     }
 
-    private fun consume(type: TokenType, message: String): Token {
-        if (check(type)) return advance()
-        throw error(peek(), message)
-    }
-
-    private fun error(token: Token, message: String): ParseError {
-        if (token.type == TokenType.EOF)
-            errorList.add("Parse error at line " + token.line.toString() + "at end " + message)
-        else {
-            errorList.add("Parse Error at line " + token.line.toString() +" at token: '" + token.lexeme + "';" + message)
-        }
-        return ParseError()
-    }
-
-    class ParseError(): RuntimeException() {
-    }
-
+    // Error handling
+    class ParseError: RuntimeException()
     // consume tokens until we get to the next boundary to continue parsing after error
     private fun synchronise() {
         advance()
@@ -141,6 +127,20 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
+    private fun error(token: Token, message: String): ParseError {
+        if (token.type == TokenType.EOF)
+            errorList.add("Parse error at line " + token.line.toString() + "at end " + message)
+        else {
+            errorList.add("Parse Error at line " + token.line.toString() +" at token: '" + token.lexeme + "';" + message)
+        }
+        return ParseError()
+    }
+
+    // Helper methods
+    private fun consume(type: TokenType, message: String): Token {
+        if (check(type)) return advance()
+        throw error(peek(), message)
+    }
     private fun match(vararg types: TokenType): Boolean {
         for (type in types) {
             if (check(type)) {
