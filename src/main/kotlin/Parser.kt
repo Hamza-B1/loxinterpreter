@@ -5,6 +5,10 @@ class Parser(private val tokens: List<Token>) {
 
     /*
     CONTEXT FREE GRAMMAR FOR PARSER
+    program        → statement* EOF ;
+    statement      → exprStmt | printStmt ;
+    exprStmt       → expression ";" ;
+    printStmt      → "print" expression ";" ;
     expression     → equality ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -27,12 +31,29 @@ class Parser(private val tokens: List<Token>) {
     */
 
     // Expression parsers that map to each grammar rule
-    fun parse(): Expr? {
-        return try {
-            expression()
-        } catch (error: ParseError) {
-            return null
+    fun parse(): ArrayList<Stmt> {
+        var stmts = ArrayList<Stmt>()
+        while (!isAtEnd) {
+            stmts.add(statement())
         }
+        return stmts
+    }
+
+    private fun statement(): Stmt {
+        if (match(TokenType.PRINT)) return printStatement()
+        return expressionStatement()
+    }
+
+    private fun printStatement(): Stmt {
+        var exp = expression()
+        consume(TokenType.SEMICOLON, "Expect ';' after value")
+        return Stmt.Print(exp)
+    }
+
+    private fun expressionStatement(): Stmt {
+        val exp = expression()
+        consume(TokenType.SEMICOLON, "Expect ';' after expression")
+        return Stmt.Expression(exp)
     }
     private fun expression(): Expr {
         return equality()

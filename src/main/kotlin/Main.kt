@@ -6,6 +6,8 @@ import kotlin.system.exitProcess
 fun main(args: Array<String>) {
     var hadScanError = false
     var hadParseError = false
+    var hadRuntimeError = false
+
     var scannerErrors: ArrayList<String> = ArrayList()
     var parserErrors: ArrayList<String> = ArrayList()
 
@@ -22,13 +24,18 @@ fun main(args: Array<String>) {
         }
 
         val parser = Parser(tokens)
-        parser.parse()
+        val exp = parser.parse()
         if (parser.errorList.isNotEmpty()) {
             parserErrors = parser.errorList
             hadParseError = true
+            return
         }
-        // do not continue if the parser threw an error
+        val interpreter = Interpreter()
+        if (exp != null) {
+            interpreter.interpret(exp)
+        }
 
+        hadRuntimeError = interpreter.hadError
     }
 
     fun runPrompt() {
@@ -51,26 +58,13 @@ fun main(args: Array<String>) {
         println("Usage: loxinterpreter [script]")
     } else if (args.size == 1) {
         runFile(args[0])
-    }
-    else runPrompt()
+    } else runPrompt()
     if (hadParseError || hadScanError) {
         println(scannerErrors.joinToString(" "))
         println(parserErrors.joinToString(" "))
         exitProcess(65)
     }
-
-//    val e: Expr = Expr.Binary(
-//            Expr.Unary(
-//                    Token(TokenType.MINUS, "-", null, 1),
-//                    Expr.Literal(123)
-//            ),
-//            Token(TokenType.STAR, "*", null, 1),
-//            Expr.Grouping(
-//                    Expr.Literal(45.67)
-//            )
-//    )
-//
-//    val p = AstPrinter()
-//    println(p.print(e))
-
+    if (hadRuntimeError) {
+        exitProcess(70)
+    }
 }
