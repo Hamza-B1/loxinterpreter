@@ -5,6 +5,7 @@ abstract class Expr {
         fun visitGroupingExpr(exp: Grouping): R
         fun visitLiteralExpr(exp: Literal): R
         fun visitUnaryExpr(exp: Unary): R
+        fun visitVariableExpr(exp: Variable): R
     }
 
     class Literal(val value: Any?) : Expr() {
@@ -28,6 +29,12 @@ abstract class Expr {
     class Grouping(val expression: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitGroupingExpr(this)
+        }
+    }
+
+    class Variable(val name: Token) : Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitVariableExpr(this)
         }
     }
 

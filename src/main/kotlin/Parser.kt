@@ -1,42 +1,41 @@
 class Parser(private val tokens: List<Token>) {
     private var current: Int = 0
-    private var isAtEnd = peek().type == TokenType.EOF
     var errorList: ArrayList<String> = ArrayList()
 
-    /*
-    CONTEXT FREE GRAMMAR FOR PARSER
-    program        → statement* EOF ;
-    statement      → exprStmt | printStmt ;
-    exprStmt       → expression ";" ;
-    printStmt      → "print" expression ";" ;
-    expression     → equality ;
-    equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-    comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    term           → factor ( ( "-" | "+" ) factor )* ;
-    factor         → unary ( ( "/" | "*" ) unary )* ;
-    unary          → ( "!" | "-" ) unary | primary ;
-    primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
-
-    with ternary?? TBC
-    // parse ? expr : kinda like grouping expression
-    //
-    expression     → equality ;
-    equality       → ternary ( ( "!=" | "==" ) ternary )* ;
-    ternary        → comparison ("?") comparison (":") comparison ;
-    comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    term           → factor ( ( "-" | "+" ) factor )* ;
-    factor         → unary ( ( "/" | "*" ) unary )* ;
-    unary          → ( "!" | "-" ) unary | primary ;
-    primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
-    */
-
-    // Expression parsers that map to each grammar rule
-    fun parse(): ArrayList<Stmt> {
-        var stmts = ArrayList<Stmt>()
-        while (!isAtEnd) {
-            stmts.add(statement())
+    fun parse(): ArrayList<Stmt?>? {
+        val stmts = ArrayList<Stmt?>()
+        try {
+        while (!isAtEnd()) {
+            stmts.add(declaration())
+            }
         }
+        catch (e: ParseError) {
+            return null
+        }
+
         return stmts
+    }
+
+    private fun declaration(): Stmt? {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration()
+            return statement()
+        }
+        catch (e: ParseError) {
+            synchronise()
+            return null
+        }
+    }
+
+    private fun varDeclaration(): Stmt? {
+        val name = consume(TokenType.IDENTIFIER, "Expect variable name.")
+        var initialiser: Expr? = null
+        if (match(TokenType.EQUAL)) {
+            initialiser = expression()
+        }
+
+        consume(TokenType.SEMICOLON, "Expect ; after variable declaration.")
+        return Stmt.Var(name, initialiser)
     }
 
     private fun statement(): Stmt {
@@ -75,7 +74,6 @@ class Parser(private val tokens: List<Token>) {
             val operator = previous() // since the token pointer has been advanced already by match
             val right = term()
             exp = Expr.Binary(exp, operator, right)
-
         }
         return exp
     }
@@ -117,6 +115,7 @@ class Parser(private val tokens: List<Token>) {
 
         if (match(TokenType.NUMBER, TokenType.STRING)) return Expr.Literal(previous().literal)
 
+        if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
         if (match(TokenType.LEFT_PAREN)) {
             val exp = expression()
             consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")
@@ -131,7 +130,7 @@ class Parser(private val tokens: List<Token>) {
     // consume tokens until we get to the next boundary to continue parsing after error
     private fun synchronise() {
         advance()
-        while(!isAtEnd) {
+        while(!isAtEnd()) {
             if (previous().type == TokenType.SEMICOLON) return
 
             when (peek().type) {
@@ -150,9 +149,9 @@ class Parser(private val tokens: List<Token>) {
 
     private fun error(token: Token, message: String): ParseError {
         if (token.type == TokenType.EOF)
-            errorList.add("Parse error at line " + token.line.toString() + "at end " + message)
+            errorList.add("Parse error at line ${token.line} at end: $message")
         else {
-            errorList.add("Parse Error at line " + token.line.toString() +" at token: '" + token.lexeme + "';" + message)
+            errorList.add("Parse error at line ${token.line} at token: '${token.lexeme}: $message")
         }
         return ParseError()
     }
@@ -173,13 +172,13 @@ class Parser(private val tokens: List<Token>) {
         return false
     }
     private fun advance(): Token {
-        if (!isAtEnd) current++
+        if (!isAtEnd()) current++
         return previous()
     }
 
     private fun check(type: TokenType): Boolean {
         // doesn't consume the token
-        if (isAtEnd) return false
+        if (isAtEnd()) return false
         return peek().type == type
     }
     private fun peek(): Token {
@@ -187,5 +186,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun previous(): Token = tokens[current - 1]
+
+    private fun isAtEnd(): Boolean = peek().type == TokenType.EOF
 
 }

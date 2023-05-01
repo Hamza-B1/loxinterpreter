@@ -1,8 +1,10 @@
 class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-    fun interpret(stmts: ArrayList<Stmt>) {
+    fun interpret(stmts: ArrayList<Stmt?>?) {
         try {
-            for (stmt in stmts)
-                execute(stmt)
+            if (stmts != null) {
+                for (stmt in stmts)
+                    stmt?.let { execute(it) }
+            }
         }
         catch (error: RuntimeError) {
             println("${error.msg}: [line ${error.token.line}]")
@@ -10,6 +12,9 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
         }
     }
     // statement visitor methods
+    override fun visitVarStatement(stmt: Stmt.Var) {
+        TODO("Not yet implemented")
+    }
     override fun visitExpressionStatement(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
     }
@@ -20,6 +25,9 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
     }
 
     // expression visitor methods
+    override fun visitVariableExpr(exp: Expr.Variable): Any? {
+        TODO("Not yet implemented")
+    }
     override fun visitLiteralExpr(exp: Expr.Literal) : Any? {
         return exp.value
     }

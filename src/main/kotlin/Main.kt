@@ -14,9 +14,6 @@ fun main(args: Array<String>) {
     fun run(code: String) {
         val scanner = Scanner(code)
         val tokens: List<Token> = scanner.scanTokens()
-        for (token in tokens) {
-            println(token.toString())
-        }
 
         if (scanner.errorList.isNotEmpty()) {
             scannerErrors = scanner.errorList
