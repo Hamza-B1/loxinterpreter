@@ -2,7 +2,6 @@ import java.io.BufferedReader
 import java.io.File
 import kotlin.system.exitProcess
 
-// basic functionality for interpreter
 fun main(args: Array<String>) {
     var hadScanError = false
     var hadParseError = false

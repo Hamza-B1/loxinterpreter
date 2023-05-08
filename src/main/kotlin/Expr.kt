@@ -6,6 +6,12 @@ abstract class Expr {
         fun visitLiteralExpr(exp: Literal): R
         fun visitUnaryExpr(exp: Unary): R
         fun visitVariableExpr(exp: Variable): R
+        fun visitAssignExpr(exp: Assign): R
+    }
+    class Assign(val name: Token, val value: Expr) : Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitAssignExpr(this)
+        }
     }
 
     class Literal(val value: Any?) : Expr() {

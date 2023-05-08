@@ -27,7 +27,7 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun varDeclaration(): Stmt? {
+    private fun varDeclaration(): Stmt {
         val name = consume(TokenType.IDENTIFIER, "Expect variable name.")
         var initialiser: Expr? = null
         if (match(TokenType.EQUAL)) {
@@ -40,22 +40,51 @@ class Parser(private val tokens: List<Token>) {
 
     private fun statement(): Stmt {
         if (match(TokenType.PRINT)) return printStatement()
+        if (match(TokenType.LEFT_BRACE)) return Stmt.Block(block())
         return expressionStatement()
+    }
+
+    private fun block(): ArrayList<Stmt> {
+        val statements = ArrayList<Stmt>()
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            declaration()?.let { statements.add(it) }
+        }
+        return statements
+
     }
 
     private fun printStatement(): Stmt {
         var exp = expression()
-        consume(TokenType.SEMICOLON, "Expect ';' after value")
+        consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Stmt.Print(exp)
     }
 
     private fun expressionStatement(): Stmt {
         val exp = expression()
-        consume(TokenType.SEMICOLON, "Expect ';' after expression")
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(exp)
     }
     private fun expression(): Expr {
-        return equality()
+        return assignment()
+    }
+
+    private fun assignment(): Expr {
+        val exp = equality()
+
+        if (match(TokenType.EQUAL)) {
+            val equals = previous()
+            val value = assignment()
+
+            if (exp is Expr.Variable) {
+                val name = exp.name
+                return Expr.Assign(name, value)
+            }
+
+            error(equals, "Invalid assignment target.")
+        }
+        return exp
+
     }
 
     private fun equality(): Expr {
@@ -122,7 +151,7 @@ class Parser(private val tokens: List<Token>) {
             return Expr.Grouping(exp)
         }
 
-        throw error(peek(), "Expected expression")
+        throw error(peek(), "Expected expression.")
     }
 
     // Error handling

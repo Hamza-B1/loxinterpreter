@@ -12,16 +12,3 @@
     factor         → unary ( ( "/" | "*" ) unary )* ;
     unary          → ( "!" | "-" ) unary | primary ;
     primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
-
-    with ternary?? TBC
-    // parse ? expr : kinda like grouping expression
-    //
-    expression     → equality ;
-    equality       → ternary ( ( "!=" | "==" ) ternary )* ;
-    ternary        → comparison ("?") comparison (":") comparison ;
-    comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    term           → factor ( ( "-" | "+" ) factor )* ;
-    factor         → unary ( ( "/" | "*" ) unary )* ;
-    unary          → ( "!" | "-" ) unary | primary ;
-    primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER ;
-    */

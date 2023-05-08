@@ -11,9 +11,17 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
             hadError = true
         }
     }
-    // statement visitor methods
-    override fun visitVarStatement(stmt: Stmt.Var) {
+    private var env = Environment()
+
+    override fun visitBlockStatement(stmt: Stmt.Block) {
         TODO("Not yet implemented")
+    }
+
+    override fun visitVarStatement(stmt: Stmt.Var) {
+        var value : Any? = null
+        if (stmt.initialiser != null)
+            value = evaluate(stmt.initialiser)
+        env.define(stmt.name.lexeme, value)
     }
     override fun visitExpressionStatement(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
@@ -24,9 +32,13 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
         println(stringify(obj))
     }
 
-    // expression visitor methods
+    override fun visitAssignExpr(exp: Expr.Assign) : Any? {
+        val value = evaluate(exp.value)
+        env.assign(exp.name, value)
+        return value
+    }
     override fun visitVariableExpr(exp: Expr.Variable): Any? {
-        TODO("Not yet implemented")
+        return env.get(exp.name)
     }
     override fun visitLiteralExpr(exp: Expr.Literal) : Any? {
         return exp.value
