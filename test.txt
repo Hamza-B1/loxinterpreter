@@ -1,1 +1,3 @@
+var test = "weed";
 print "hi";
+print test;

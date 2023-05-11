@@ -1,4 +1,5 @@
 class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    private var env = Environment()
     fun interpret(stmts: ArrayList<Stmt?>?) {
         try {
             if (stmts != null) {
@@ -11,10 +12,28 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
             hadError = true
         }
     }
-    private var env = Environment()
 
+    override fun visitIfStatement(stmt: Stmt.If) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch)
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch)
+        }
+    }
     override fun visitBlockStatement(stmt: Stmt.Block) {
-        TODO("Not yet implemented")
+        executeBlock(stmt.statements, Environment(env))
+    }
+
+    private fun executeBlock(statements: List<Stmt>, env: Environment) {
+        val previous = this.env
+
+        try {
+            this.env = env
+            statements.forEach {execute(it)} // for each applies the function in place
+        }
+        finally {
+            this.env = previous
+        }
     }
 
     override fun visitVarStatement(stmt: Stmt.Var) {
@@ -153,5 +172,8 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
         return obj.toString()
     }
 
+    override fun visitEmptyStatement(stmt: Stmt.Empty) {
+        return // TODO REPLACE NULLS WITH EMPTY STMT
+    }
 
 }

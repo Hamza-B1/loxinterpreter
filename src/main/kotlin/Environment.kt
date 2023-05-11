@@ -12,7 +12,7 @@ class Environment(private var enclosing: Environment?) {
             return values[name.lexeme] // search the current scope
         }
 
-        enclosing?.let {get(name)} // this probably won't work ngl
+        enclosing?.let {get(name)}
 
         throw Interpreter.RuntimeError(name, "Undefined variable '${name.lexeme}'.")
     }

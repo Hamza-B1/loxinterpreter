@@ -7,6 +7,13 @@ abstract class Expr {
         fun visitUnaryExpr(exp: Unary): R
         fun visitVariableExpr(exp: Variable): R
         fun visitAssignExpr(exp: Assign): R
+        fun visitLogicalExpr(exp: Logical): R
+    }
+
+    class Logical(val left: Expr, val operator: Token, val right: Expr): Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitLogicalExpr(this)
+        }
     }
     class Assign(val name: Token, val value: Expr) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {

@@ -39,6 +39,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun statement(): Stmt {
+        if (match(TokenType.IF)) return ifStatement()
         if (match(TokenType.PRINT)) return printStatement()
         if (match(TokenType.LEFT_BRACE)) return Stmt.Block(block())
         return expressionStatement()
@@ -51,6 +52,15 @@ class Parser(private val tokens: List<Token>) {
             declaration()?.let { statements.add(it) }
         }
         return statements
+
+    }
+
+    private fun ifStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after if keyword.")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after if condition.")
+
+        val thenBranch = statement()
 
     }
 
@@ -180,7 +190,7 @@ class Parser(private val tokens: List<Token>) {
         if (token.type == TokenType.EOF)
             errorList.add("Parse error at line ${token.line} at end: $message")
         else {
-            errorList.add("Parse error at line ${token.line} at token: '${token.lexeme}: $message")
+            errorList.add("Parse error at line ${token.line} at token: '${token.lexeme}': $message")
         }
         return ParseError()
     }

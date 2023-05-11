@@ -4,8 +4,20 @@ abstract class Stmt {
         fun visitExpressionStatement(stmt: Expression): R
         fun visitPrintStatement(stmt: Print): R
         fun visitVarStatement(stmt: Var): R
+        fun visitIfStatement(stmt: If): R
+        fun visitEmptyStatement(stmt: Empty): R
     }
 
+    class Empty : Stmt() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitEmptyStatement(this)
+        }
+    }
+    class If(val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?): Stmt() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitIfStatement(this)
+        }
+    }
     class Block(val statements: List<Stmt>) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitBlockStatement(this)
