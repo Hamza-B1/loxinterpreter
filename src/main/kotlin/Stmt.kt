@@ -29,7 +29,7 @@ abstract class Stmt {
         }
     }
 
-    class Expression(var expression: Expr) : Stmt() {
+    class Expression(val expression: Expr) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitExpressionStatement(this)
         }

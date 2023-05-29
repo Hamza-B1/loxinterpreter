@@ -61,7 +61,10 @@ class Parser(private val tokens: List<Token>) {
         consume(TokenType.RIGHT_PAREN, "Expected ')' after if condition.")
 
         val thenBranch = statement()
-
+        var elseBranch: Stmt? = null
+        if (match(TokenType.ELSE)) // avoids dangling else problem by immediately parsing else
+            elseBranch = statement()
+        return Stmt.If(condition, thenBranch, elseBranch)
     }
 
     private fun printStatement(): Stmt {
@@ -80,7 +83,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun assignment(): Expr {
-        val exp = equality()
+        val exp = or()
 
         if (match(TokenType.EQUAL)) {
             val equals = previous()
@@ -95,6 +98,28 @@ class Parser(private val tokens: List<Token>) {
         }
         return exp
 
+    }
+
+    private fun or(): Expr {
+        var exp = and()
+
+        while (match(TokenType.OR)) {
+            val operator = previous()
+            val right = and()
+            exp = Expr.Logical(exp, operator, right)
+        }
+        return exp
+    }
+
+    private fun and(): Expr {
+        var exp = equality()
+
+        while (match(TokenType.AND)) {
+            val operator = previous()
+            val right = equality()
+            exp = Expr.Logical(exp, operator, right)
+        }
+        return exp
     }
 
     private fun equality(): Expr {

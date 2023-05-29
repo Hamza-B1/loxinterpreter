@@ -20,6 +20,7 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
             execute(stmt.elseBranch)
         }
     }
+
     override fun visitBlockStatement(stmt: Stmt.Block) {
         executeBlock(stmt.statements, Environment(env))
     }
@@ -56,6 +57,17 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
         env.assign(exp.name, value)
         return value
     }
+
+    override fun visitLogicalExpr(exp: Expr.Logical): Any? {
+        val left = evaluate(exp.left)
+        if (exp.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left
+        } else {
+            if (!isTruthy(left)) return left
+            }
+        return evaluate(exp.right)
+    }
+
     override fun visitVariableExpr(exp: Expr.Variable): Any? {
         return env.get(exp.name)
     }
