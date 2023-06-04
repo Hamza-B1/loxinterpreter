@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
         }
 
         val parser = Parser(tokens)
-        val exp = parser.parse()
+        val exp = parser.parse() // exp is the AST
         if (parser.errorList.isNotEmpty()) {
             parserErrors = parser.errorList
             hadParseError = true

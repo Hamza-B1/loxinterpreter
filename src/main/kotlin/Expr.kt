@@ -8,6 +8,13 @@ abstract class Expr {
         fun visitVariableExpr(exp: Variable): R
         fun visitAssignExpr(exp: Assign): R
         fun visitLogicalExpr(exp: Logical): R
+        fun visitCallExpr(exp: Call): R
+    }
+
+    class Call(val callee: Expr, val paren: Token, args: ArrayList<Expr>) : Expr() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitCallExpr(this)
+        }
     }
 
     class Logical(val left: Expr, val operator: Token, val right: Expr): Expr() {

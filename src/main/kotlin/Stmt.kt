@@ -5,12 +5,12 @@ abstract class Stmt {
         fun visitPrintStatement(stmt: Print): R
         fun visitVarStatement(stmt: Var): R
         fun visitIfStatement(stmt: If): R
-        fun visitEmptyStatement(stmt: Empty): R
+        fun visitWhileStatement(stmt: While): R
     }
 
-    class Empty : Stmt() {
+    class While(val condition: Expr?, val body: Stmt) : Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {
-            return visitor.visitEmptyStatement(this)
+            return visitor.visitWhileStatement(this)
         }
     }
     class If(val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?): Stmt() {

@@ -1,5 +1,20 @@
-class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-    private var env = Environment()
+class Interpreter(var hadError: Boolean = false, globals: Environment = Environment()): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+
+    private var env = globals
+    init {
+        globals.define("clock", object: LoxCallable {
+            override fun arity(): Int = 0
+
+            override fun call(interpreter: Interpreter, args: ArrayList<Any?>): Any {
+                return System.currentTimeMillis().toDouble() / 1000.0
+            }
+
+            override fun toString(): String = "<native fn>"
+
+
+        })
+    }
+
     fun interpret(stmts: ArrayList<Stmt?>?) {
         try {
             if (stmts != null) {
@@ -7,10 +22,31 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
                     stmt?.let { execute(it) }
             }
         }
+
         catch (error: RuntimeError) {
             println("${error.msg}: [line ${error.token.line}]")
             hadError = true
         }
+    }
+
+    override fun visitCallExpr(exp: Expr.Call): Any? {
+        val callee = evaluate(exp.callee)
+
+        val args = ArrayList<Any?>()
+        for (argument in args) {
+            args.add(evaluate(argument as Expr))
+        }
+
+        if (callee !is LoxCallable)
+            throw RuntimeError(exp.paren, "Can only call functions and classes.")
+        if (args.size != callee.arity())
+            throw RuntimeError(exp.paren, "Expected ${callee.arity()} arguments but got ${args.size}")
+        return callee.call(this, args)
+    }
+
+    override fun visitWhileStatement(stmt: Stmt.While) {
+        while (isTruthy(stmt.condition))
+            execute(stmt.body)
     }
 
     override fun visitIfStatement(stmt: Stmt.If) {
@@ -183,9 +219,4 @@ class Interpreter(var hadError: Boolean = false): Expr.Visitor<Any?>, Stmt.Visit
         }
         return obj.toString()
     }
-
-    override fun visitEmptyStatement(stmt: Stmt.Empty) {
-        return // TODO REPLACE NULLS WITH EMPTY STMT
-    }
-
 }

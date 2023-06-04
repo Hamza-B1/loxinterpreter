@@ -41,8 +41,55 @@ class Parser(private val tokens: List<Token>) {
     private fun statement(): Stmt {
         if (match(TokenType.IF)) return ifStatement()
         if (match(TokenType.PRINT)) return printStatement()
+        if (match(TokenType.WHILE)) return whileStatement()
         if (match(TokenType.LEFT_BRACE)) return Stmt.Block(block())
+        if (match(TokenType.FOR)) return forStatement()
         return expressionStatement()
+    }
+
+    private fun forStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after for keyword.")
+        val init: Stmt? = if (match(TokenType.SEMICOLON))
+            null
+        else if (match(TokenType.VAR))
+            varDeclaration()
+        else
+            expressionStatement()
+
+        var condition: Expr? = if (!check(TokenType.SEMICOLON))
+            expression()
+        else null
+
+        consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
+
+        val increment: Expr? = if (!check(TokenType.RIGHT_PAREN))
+            expression()
+        else null
+
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        var body = statement()
+
+        if (increment != null) {
+            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+        }
+
+        if (condition == null) condition = Expr.Literal(true)
+        body = Stmt.While(condition, body)
+
+        if (init != null)
+            body = Stmt.Block(listOf(init, body))
+
+        return body
+
+    }
+
+    private fun whileStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after while keyword.")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after while condition.")
+        val body = statement()
+        return Stmt.While(condition, body)
     }
 
     private fun block(): ArrayList<Stmt> {
@@ -51,8 +98,8 @@ class Parser(private val tokens: List<Token>) {
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
             declaration()?.let { statements.add(it) }
         }
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
         return statements
-
     }
 
     private fun ifStatement(): Stmt {
@@ -68,7 +115,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun printStatement(): Stmt {
-        var exp = expression()
+        val exp = expression()
         consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Stmt.Print(exp)
     }
@@ -169,7 +216,37 @@ class Parser(private val tokens: List<Token>) {
             return Expr.Unary(operator, right)
 
         }
-        return primary()
+        return call()
+    }
+
+    private fun call(): Expr {
+        var expr = primary()
+        consume(TokenType.LEFT_PAREN, "Expected '(' after callee.")
+
+        while (true) {
+            if (match(TokenType.LEFT_PAREN))
+                expr = finishCall(expr)
+            else {
+                break
+            }
+        }
+        return expr
+    }
+
+    private fun finishCall(callee: Expr): Expr {
+        val args = ArrayList<Expr>()
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (args.size >= 255)
+                    error(peek(), "Can't have more than 255 arguments.")
+                args.add(expression())
+            } while (match(TokenType.COMMA))
+        }
+
+        val paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.")
+
+        return Expr.Call(callee, paren, args)
+
     }
 
     private fun primary(): Expr {
