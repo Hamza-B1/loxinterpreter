@@ -6,6 +6,13 @@ abstract class Stmt {
         fun visitVarStatement(stmt: Var): R
         fun visitIfStatement(stmt: If): R
         fun visitWhileStatement(stmt: While): R
+        fun visitBreakStatement(stmt: Break): R
+    }
+
+    class Break(): Stmt() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitBreakStatement(this)
+        }
     }
 
     class While(val condition: Expr?, val body: Stmt) : Stmt() {

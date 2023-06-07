@@ -29,6 +29,9 @@ class Interpreter(var hadError: Boolean = false, globals: Environment = Environm
         }
     }
 
+    override fun visitBreakStatement(stmt: Stmt.Break) {
+        return Unit
+    }
     override fun visitCallExpr(exp: Expr.Call): Any? {
         val callee = evaluate(exp.callee)
 

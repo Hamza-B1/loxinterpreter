@@ -124,6 +124,7 @@ class Scanner(private val source: String) {
     private val keywords: HashMap<String, TokenType>
         get() = hashMapOf(
             "and" to TokenType.AND,
+            "break" to TokenType.BREAK,
             "class" to TokenType.CLASS,
             "else" to TokenType.ELSE,
             "false" to TokenType.FALSE,

@@ -1,6 +1,7 @@
 class Parser(private val tokens: List<Token>) {
     private var current: Int = 0
     var errorList: ArrayList<String> = ArrayList()
+    private var withinLoop = false
 
     fun parse(): ArrayList<Stmt?>? {
         val stmts = ArrayList<Stmt?>()
@@ -44,7 +45,15 @@ class Parser(private val tokens: List<Token>) {
         if (match(TokenType.WHILE)) return whileStatement()
         if (match(TokenType.LEFT_BRACE)) return Stmt.Block(block())
         if (match(TokenType.FOR)) return forStatement()
+//        if (match(TokenType.BREAK)) return breakStatement()
         return expressionStatement()
+    }
+
+    private fun breakStatement(): Stmt
+    {
+        if (!withinLoop)
+            error(previous(), "Cannot have break keyword outside loop.")
+        return Stmt.Break()
     }
 
     private fun forStatement(): Stmt {
