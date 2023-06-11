@@ -3,29 +3,45 @@ class Parser(private val tokens: List<Token>) {
     var errorList: ArrayList<String> = ArrayList()
     private var withinLoop = false
 
-    fun parse(): ArrayList<Stmt?>? {
+    fun parse(): ArrayList<Stmt?> {
         val stmts = ArrayList<Stmt?>()
-        try {
         while (!isAtEnd()) {
             stmts.add(declaration())
-            }
         }
-        catch (e: ParseError) {
-            return null
-        }
-
         return stmts
     }
 
     private fun declaration(): Stmt? {
         try {
             if (match(TokenType.VAR)) return varDeclaration()
+            if (match(TokenType.FUN)) return function("function")
             return statement()
         }
         catch (e: ParseError) {
             synchronise()
             return null
         }
+    }
+
+    private fun function(type: String): Stmt {
+        val name = consume(TokenType.IDENTIFIER, "Expect $type name.")
+        consume(TokenType.LEFT_PAREN, "Expect '(' after $type name.")
+        val params = ArrayList<Token>()
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (params.size > 255) {
+                    error(peek(), "Cannot have more than 255 parameters.")
+                }
+                params.add(consume(TokenType.IDENTIFIER, "Expect parameter name."))
+            } while (match(TokenType.COMMA))
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ') after parameters.")
+
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before $type body.")
+        val body = block()
+
+        return Stmt.Function(name, params, body)
     }
 
     private fun varDeclaration(): Stmt {
@@ -255,7 +271,6 @@ class Parser(private val tokens: List<Token>) {
         val paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.")
 
         return Expr.Call(callee, paren, args)
-
     }
 
     private fun primary(): Expr {
@@ -318,7 +333,6 @@ class Parser(private val tokens: List<Token>) {
                 return true
             }
         }
-
         return false
     }
     private fun advance(): Token {

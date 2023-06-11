@@ -1,4 +1,4 @@
-class Interpreter(var hadError: Boolean = false, globals: Environment = Environment()): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+class Interpreter(var hadError: Boolean = false, var globals: Environment = Environment()): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
     private var env = globals
     init {
@@ -10,7 +10,6 @@ class Interpreter(var hadError: Boolean = false, globals: Environment = Environm
             }
 
             override fun toString(): String = "<native fn>"
-
 
         })
     }
@@ -29,8 +28,13 @@ class Interpreter(var hadError: Boolean = false, globals: Environment = Environm
         }
     }
 
+    override fun visitFunctionStatement(stmt: Stmt.Function) {
+        val function = LoxFunction(stmt)
+        env.define(stmt.name.lexeme, function)
+    }
+
     override fun visitBreakStatement(stmt: Stmt.Break) {
-        return Unit
+        return
     }
     override fun visitCallExpr(exp: Expr.Call): Any? {
         val callee = evaluate(exp.callee)
@@ -64,7 +68,7 @@ class Interpreter(var hadError: Boolean = false, globals: Environment = Environm
         executeBlock(stmt.statements, Environment(env))
     }
 
-    private fun executeBlock(statements: List<Stmt>, env: Environment) {
+    fun executeBlock(statements: List<Stmt>, env: Environment) {
         val previous = this.env
 
         try {
