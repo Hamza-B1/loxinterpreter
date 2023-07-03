@@ -27,9 +27,7 @@ fun main(args: Array<String>) {
             return
         }
         val interpreter = Interpreter()
-        if (exp != null) {
-            interpreter.interpret(exp)
-        }
+        interpreter.interpret(exp)
 
         hadRuntimeError = interpreter.hadError
     }

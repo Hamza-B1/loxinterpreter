@@ -1,1 +1,5 @@
-print;
+fun test(a, b) {
+    print a + b;
+}
+var b = "bee";
+test("test", b);

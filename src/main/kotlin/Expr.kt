@@ -11,7 +11,7 @@ abstract class Expr {
         fun visitCallExpr(exp: Call): R
     }
 
-    class Call(val callee: Expr, val paren: Token, args: ArrayList<Expr>) : Expr() {
+    class Call(val callee: Expr, val paren: Token, val args: ArrayList<Expr>) : Expr() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitCallExpr(this)
         }

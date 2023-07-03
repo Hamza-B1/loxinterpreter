@@ -28,6 +28,15 @@ class Interpreter(var hadError: Boolean = false, var globals: Environment = Envi
         }
     }
 
+    override fun visitReturnStatement(stmt: Stmt.Return) {
+        var value: Any? = null
+        if (stmt.value != null) {
+            value = evaluate(stmt.value)
+        }
+
+        throw Return(value)
+    }
+    class Return(public val value: Any?): RuntimeException(null, null, false, false)
     override fun visitFunctionStatement(stmt: Stmt.Function) {
         val function = LoxFunction(stmt)
         env.define(stmt.name.lexeme, function)
@@ -40,8 +49,8 @@ class Interpreter(var hadError: Boolean = false, var globals: Environment = Envi
         val callee = evaluate(exp.callee)
 
         val args = ArrayList<Any?>()
-        for (argument in args) {
-            args.add(evaluate(argument as Expr))
+        for (argument in exp.args) {
+            args.add(evaluate(argument))
         }
 
         if (callee !is LoxCallable)

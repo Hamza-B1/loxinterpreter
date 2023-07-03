@@ -8,8 +8,13 @@ abstract class Stmt {
         fun visitWhileStatement(stmt: While): R
         fun visitBreakStatement(stmt: Break): R
         fun visitFunctionStatement(stmt: Function): R
+        fun visitReturnStatement(stmt: Return): R
     }
-
+    class Return(val keyword: Token, val value: Expr?): Stmt() {
+        override fun <R> accept(visitor: Visitor<R>): R {
+            return visitor.visitReturnStatement(this)
+        }
+    }
     class Function(val name: Token, val params: ArrayList<Token>, val body: ArrayList<Stmt>): Stmt() {
         override fun <R> accept(visitor: Visitor<R>): R {
             return visitor.visitFunctionStatement(this)
