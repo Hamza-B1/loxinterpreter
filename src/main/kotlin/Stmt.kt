@@ -59,10 +59,5 @@ abstract class Stmt {
             return visitor.visitPrintStatement(this)
         }
     }
-
     abstract fun <R> accept(visitor: Visitor<R>): R
-
-
-
-
 }

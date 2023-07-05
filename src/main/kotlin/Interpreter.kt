@@ -61,7 +61,7 @@ class Interpreter(var hadError: Boolean = false, var globals: Environment = Envi
     }
 
     override fun visitWhileStatement(stmt: Stmt.While) {
-        while (isTruthy(stmt.condition))
+        while (isTruthy(stmt.condition?.let { evaluate(it) }))
             execute(stmt.body)
     }
 

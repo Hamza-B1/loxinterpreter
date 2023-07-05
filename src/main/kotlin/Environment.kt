@@ -1,5 +1,5 @@
 class Environment(private var enclosing: Environment?) {
-    constructor(): this(null)
+    constructor() : this(null)
 
     private var values: HashMap<String, Any?> = HashMap()
 
@@ -12,19 +12,21 @@ class Environment(private var enclosing: Environment?) {
             return values[name.lexeme] // search the current scope
         }
 
-        enclosing?.let {get(name)}
+        if (enclosing != null)
+            return enclosing!!.get(name)
 
-        throw Interpreter.RuntimeError(name, "Undefined variable '${name.lexeme}'.")
+        throw Interpreter.RuntimeError(name, "Undefined variable '${name.lexeme}'")
     }
 
     // assign is only for assigning to existing variables
     fun assign(name: Token, value: Any?) {
         if (values.containsKey(name.lexeme)) {
-            values[name.lexeme] = values
+            values[name.lexeme] = value
+            return
         }
 
-        enclosing?.let {
-            assign(name, value)
+        if (enclosing != null) {
+            enclosing!!.assign(name, value)
             return
         }
 
