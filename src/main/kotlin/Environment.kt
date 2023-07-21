@@ -1,7 +1,7 @@
-class Environment(private var enclosing: Environment?) {
-    constructor() : this(null)
+class Environment(var enclosing: Environment?) {
 
-    private var values: HashMap<String, Any?> = HashMap()
+    var values: HashMap<String, Any?> = HashMap()
+        private set
 
     fun define(name: String, value: Any?) {
         values[name] = value

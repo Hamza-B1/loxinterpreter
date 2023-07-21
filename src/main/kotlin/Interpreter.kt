@@ -1,5 +1,5 @@
-class Interpreter(var hadError: Boolean = false, var globals: Environment = Environment()): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-
+class Interpreter(var hadError: Boolean = false, var globals: Environment = Environment(null)): Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    private val LOGGING = false
     private var env = globals
     init {
         globals.define("clock", object: LoxCallable {
@@ -40,6 +40,8 @@ class Interpreter(var hadError: Boolean = false, var globals: Environment = Envi
     override fun visitFunctionStatement(stmt: Stmt.Function) {
         val function = LoxFunction(stmt)
         env.define(stmt.name.lexeme, function)
+        if(LOGGING)
+            logEnvironment(env)
     }
 
     override fun visitBreakStatement(stmt: Stmt.Break) {
@@ -85,6 +87,8 @@ class Interpreter(var hadError: Boolean = false, var globals: Environment = Envi
             statements.forEach {execute(it)} // for each applies the function in place
         }
         finally {
+            if (LOGGING)
+                logEnvironment(this.env)
             this.env = previous
         }
     }
@@ -234,5 +238,28 @@ class Interpreter(var hadError: Boolean = false, var globals: Environment = Envi
             return text
         }
         return obj.toString()
+    }
+
+    private fun logEnvironment(env: Environment) {
+        val stackTrace = Thread.currentThread().stackTrace
+        val calleeName = stackTrace[1].methodName
+        val callerName = stackTrace[2].methodName
+
+        // walk the linked list of environments
+        println("$calleeName called by $callerName")
+        var currentEnv: Environment? = env
+        var count = 0
+
+        println("printing variables:")
+        while (currentEnv?.enclosing != null) {
+
+            println("Content of scope $count from inner")
+            for ((name, value) in env.values)
+                println("Name: $name, Value: $value")
+
+            currentEnv = currentEnv.enclosing
+            count++
+
+        }
     }
 }

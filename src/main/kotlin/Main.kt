@@ -20,14 +20,16 @@ fun main(args: Array<String>) {
         }
 
         val parser = Parser(tokens)
-        val exp = parser.parse() // exp is the AST
+        val abstractSyntaxTree = parser.parse()
+
         if (parser.errorList.isNotEmpty()) {
             parserErrors = parser.errorList
             hadParseError = true
             return
         }
+
         val interpreter = Interpreter()
-        interpreter.interpret(exp)
+        interpreter.interpret(abstractSyntaxTree)
 
         hadRuntimeError = interpreter.hadError
     }
